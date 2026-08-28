@@ -16,6 +16,7 @@ var dayCmd = &cobra.Command{
 	},
 }
 
+// Special function executed automatically when the package is loaded
 func init() {
 	rootCmd.AddCommand(dayCmd)
 }
