@@ -13,7 +13,7 @@ var dayCmd = &cobra.Command{
 	Long:  `Day starts an interactive wizard tha asks about your daily habits and writes the result as a markdown file into your Obsidian vault.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var interviewerPort domain.Interviewer = interviewer.NewHuhInterviewer()
-		var repositoryPort domain.Repository = storage.NewObsidianWriter("./testvault")
+		var repositoryPort domain.Repository = storage.NewObsidianWriter(appConfig.VaultPath)
 
 		log, err := interviewerPort.AskDailyLog()
 		if err != nil {
