@@ -21,6 +21,14 @@ cd lorren
 go build -o lorren ./cmd/lorren
 ```
 
+If you're going to contribute, also install the git hooks (requires [lefthook](https://github.com/evilmartians/lefthook)):
+
+```bash
+lefthook install
+```
+
+This runs `gofmt` and `go vet` before each commit, and `go test ./...` before each push.
+
 ## Usage
 
 ```bash
@@ -48,7 +56,7 @@ Lorren follows a hexagonal (ports & adapters) architecture: a plain Go domain at
 
 ## Status
 
-`lorren day` works end to end. `lorren train` (training session logging) is planned, not started yet.
+`lorren day` works end to end, with unit tests covering `internal/domain` and `internal/storage`. `lorren train` (training session logging) is planned, not started yet.
 
 ## Built with
 
