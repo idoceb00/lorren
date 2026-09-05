@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/viper"
@@ -59,12 +60,17 @@ func createConfig(path string) error {
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Where is your Obsidian vault?").
-				Description("Enter the fult path to an existing folder.").
+				Description("Full path, or ~/... from your home folder.").
 				Value(&vaultPath),
 		),
 	)
 
 	if err := form.Run(); err != nil {
+		return err
+	}
+
+	vaultPath, err := expandHome(vaultPath)
+	if err != nil {
 		return err
 	}
 
@@ -86,4 +92,25 @@ func createConfig(path string) error {
 	}
 
 	return nil
+}
+
+func expandHome(path string) (string, error) {
+	if path == "" || path[0] != '~' {
+		return path, nil
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("resolving home directory: %w", err)
+	}
+
+	if path == "~" {
+		return home, nil
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(home, path[2:]), nil
+	}
+
+	return path, nil
 }
