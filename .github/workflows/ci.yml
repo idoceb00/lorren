@@ -32,6 +32,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27'
-      - uses: golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v2.13.2
