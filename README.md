@@ -3,6 +3,7 @@
 ![Go Version](https://img.shields.io/badge/go-1.27%2B-00ADD8?logo=go&logoColor=white)
 ![License](https://img.shields.io/github/license/idoceb00/lorren)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
+![CI](https://github.com/idoceb00/lorren/actions/workflows/ci.yml/badge.svg)
 
 A CLI wizard that interviews you about your daily habits and training sessions, then writes the results as structured markdown files into your Obsidian vault.
 
@@ -63,7 +64,8 @@ Lorren follows a hexagonal (ports & adapters) architecture: a plain Go domain at
 - [Go](https://go.dev/) 1.27+
 - [Cobra](https://github.com/spf13/cobra) — CLI command routing
 - [Viper](https://github.com/spf13/viper) — configuration
-- [huh](https://github.com/charmbracelet/huh) — interactive terminal forms
+- [huh](https://github.com/charmbracelet/huh) — interactive terminal 
+- [GitHub Actions](https://github.com/features/actions) — CI (build, test, lint on every push to main)forms
 
 ## License
 
