@@ -15,94 +15,124 @@ func NewHuhInterviewer() *HuhInterviewer {
 }
 
 func (h *HuhInterviewer) AskDailyLog(existing *domain.DailyLog) (*domain.DailyLog, error) {
-	var (
-		training, reading, coding, meditation, noSmoking, stretching bool
-		sleepHoursStr                                                string
+	state := newFormState(existing)
 
-		breakfast, lunch, dinner, snacks string
-
-		dayWellSpent                               bool
-		whatIDidToday, whatWentWell, whatToImprove string
-		quickNotes                                 string
-
-		date time.Time
-	)
-
-	date = time.Now()
-
-	if existing != nil {
-		training = existing.Training
-		reading = existing.Reading
-		coding = existing.Coding
-		meditation = existing.Meditation
-		noSmoking = existing.NoSmoking
-		stretching = existing.Stretching
-		sleepHoursStr = fmt.Sprintf("%.2f", existing.SleepHours)
-		breakfast = existing.Breakfast
-		lunch = existing.Lunch
-		dinner = existing.Dinner
-		snacks = existing.Snacks
-		dayWellSpent = existing.DayWellSpent
-		whatIDidToday = existing.WhatIDidToday
-		whatWentWell = existing.WhatWentWell
-		whatToImprove = existing.WhatToImprove
-		quickNotes = existing.QuickNotes
-		date = existing.Date
-	}
-
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().Title("Did you train today?").Value(&training),
-			huh.NewConfirm().Title("Did you read today?").Value(&reading),
-			huh.NewConfirm().Title("Did you code today?").Value(&coding),
-			huh.NewConfirm().Title("Did you meditate today?").Value(&meditation),
-			huh.NewConfirm().Title("Did you avoid smoking today?").Value(&noSmoking),
-			huh.NewConfirm().Title("Did you stretch today?").Value(&stretching),
-			huh.NewInput().Title("How many hours did you sleep?").Value(&sleepHoursStr),
-		),
-		huh.NewGroup(
-			huh.NewText().Title("Breakfast").Value(&breakfast),
-			huh.NewText().Title("Lunch").Value(&lunch),
-			huh.NewText().Title("Dinner").Value(&dinner),
-			huh.NewText().Title("Snacks").Value(&snacks),
-		),
-		huh.NewGroup(
-			huh.NewConfirm().Title("Was today well spent?").Value(&dayWellSpent),
-			huh.NewText().Title("What did you do today?").Value(&whatIDidToday),
-			huh.NewText().Title("What went well?").Value(&whatWentWell),
-			huh.NewText().Title("What could you improve?").Value(&whatToImprove),
-			huh.NewText().Title("Quick notes").Value(&quickNotes),
-		),
-	)
-
-	if err := form.Run(); err != nil {
+	if err := buildForm(state).Run(); err != nil {
 		return nil, err
 	}
 
-	sleepHours, err := parseSleepHours(sleepHoursStr)
+	input, err := toDailyLogInput(state)
 	if err != nil {
 		return nil, err
 	}
 
-	return domain.NewDailyLog(domain.NewDailyLogInput{
-		Date:          date,
-		Training:      training,
-		Reading:       reading,
-		Coding:        coding,
-		Meditation:    meditation,
-		NoSmoking:     noSmoking,
-		Stretching:    stretching,
+	return domain.NewDailyLog(input)
+}
+
+// formState holds every field the wizard reads from and writes to.
+// huh binds each widget to a field's address, so this struct is the
+// single source of truth across seeding, form input, and reconstruction.
+type formState struct {
+	Date time.Time
+
+	Training, Reading, Coding, Meditation, NoSmoking, Stretching bool
+	SleepHoursStr                                                string
+
+	Breakfast, Lunch, Dinner, Snacks string
+
+	DayWellSpent                               bool
+	WhatIDidToday, WhatWentWell, WhatToImprove string
+	QuickNotes                                 string
+}
+
+// newFormState seeds a formState from an existing log, or returns
+// zero-value defaults (and today's date) when existing is nil.
+func newFormState(existing *domain.DailyLog) *formState {
+	state := &formState{Date: time.Now()}
+
+	if existing == nil {
+		return state
+	}
+
+	state.Date = existing.Date
+	state.Training = existing.Training
+	state.Reading = existing.Reading
+	state.Coding = existing.Coding
+	state.Meditation = existing.Meditation
+	state.NoSmoking = existing.NoSmoking
+	state.Stretching = existing.Stretching
+	state.SleepHoursStr = fmt.Sprintf("%.2f", existing.SleepHours)
+	state.Breakfast = existing.Breakfast
+	state.Lunch = existing.Lunch
+	state.Dinner = existing.Dinner
+	state.Snacks = existing.Snacks
+	state.DayWellSpent = existing.DayWellSpent
+	state.WhatIDidToday = existing.WhatIDidToday
+	state.WhatWentWell = existing.WhatWentWell
+	state.WhatToImprove = existing.WhatToImprove
+	state.QuickNotes = existing.QuickNotes
+
+	return state
+}
+
+// buildForm wires the widgets to state's fields. huh reads state's
+// current values as defaults and writes the user's answers back
+// into the same fields on form.Run().
+func buildForm(state *formState) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().Title("Did you train today?").Value(&state.Training),
+			huh.NewConfirm().Title("Did you read today?").Value(&state.Reading),
+			huh.NewConfirm().Title("Did you code today?").Value(&state.Coding),
+			huh.NewConfirm().Title("Did you meditate today?").Value(&state.Meditation),
+			huh.NewConfirm().Title("Did you avoid smoking today?").Value(&state.NoSmoking),
+			huh.NewConfirm().Title("Did you stretch today?").Value(&state.Stretching),
+			huh.NewInput().Title("How many hours did you sleep?").Value(&state.SleepHoursStr),
+		),
+		huh.NewGroup(
+			huh.NewText().Title("Breakfast").Value(&state.Breakfast),
+			huh.NewText().Title("Lunch").Value(&state.Lunch),
+			huh.NewText().Title("Dinner").Value(&state.Dinner),
+			huh.NewText().Title("Snacks").Value(&state.Snacks),
+		),
+		huh.NewGroup(
+			huh.NewConfirm().Title("Was today well spent?").Value(&state.DayWellSpent),
+			huh.NewText().Title("What did you do today?").Value(&state.WhatIDidToday),
+			huh.NewText().Title("What went well?").Value(&state.WhatWentWell),
+			huh.NewText().Title("What could you improve?").Value(&state.WhatToImprove),
+			huh.NewText().Title("Quick notes").Value(&state.QuickNotes),
+		),
+	)
+}
+
+// toDailyLogInput translates a completed formState into the domain's
+// construction type, parsing the one field (sleep hours) whose wire
+// format differs from the domain's.
+func toDailyLogInput(state *formState) (domain.NewDailyLogInput, error) {
+	sleepHours, err := parseSleepHours(state.SleepHoursStr)
+	if err != nil {
+		return domain.NewDailyLogInput{}, err
+	}
+
+	return domain.NewDailyLogInput{
+		Date:          state.Date,
+		Training:      state.Training,
+		Reading:       state.Reading,
+		Coding:        state.Coding,
+		Meditation:    state.Meditation,
+		NoSmoking:     state.NoSmoking,
+		Stretching:    state.Stretching,
 		SleepHours:    sleepHours,
-		Breakfast:     breakfast,
-		Lunch:         lunch,
-		Dinner:        dinner,
-		Snacks:        snacks,
-		DayWellSpent:  dayWellSpent,
-		WhatIDidToday: whatIDidToday,
-		WhatWentWell:  whatWentWell,
-		WhatToImprove: whatToImprove,
-		QuickNotes:    quickNotes,
-	})
+		Breakfast:     state.Breakfast,
+		Lunch:         state.Lunch,
+		Dinner:        state.Dinner,
+		Snacks:        state.Snacks,
+		DayWellSpent:  state.DayWellSpent,
+		WhatIDidToday: state.WhatIDidToday,
+		WhatWentWell:  state.WhatWentWell,
+		WhatToImprove: state.WhatToImprove,
+		QuickNotes:    state.QuickNotes,
+	}, nil
 }
 
 func parseSleepHours(s string) (float64, error) {
