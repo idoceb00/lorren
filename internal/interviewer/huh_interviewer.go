@@ -14,7 +14,7 @@ func NewHuhInterviewer() *HuhInterviewer {
 	return &HuhInterviewer{}
 }
 
-func (h *HuhInterviewer) AskDailyLog() (*domain.DailyLog, error) {
+func (h *HuhInterviewer) AskDailyLog(existing *domain.DailyLog) (*domain.DailyLog, error) {
 	var (
 		training, reading, coding, meditation, noSmoking, stretching bool
 		sleepHoursStr                                                string
@@ -24,7 +24,31 @@ func (h *HuhInterviewer) AskDailyLog() (*domain.DailyLog, error) {
 		dayWellSpent                               bool
 		whatIDidToday, whatWentWell, whatToImprove string
 		quickNotes                                 string
+
+		date time.Time
 	)
+
+	date = time.Now()
+
+	if existing != nil {
+		training = existing.Training
+		reading = existing.Reading
+		coding = existing.Coding
+		meditation = existing.Meditation
+		noSmoking = existing.NoSmoking
+		stretching = existing.Stretching
+		sleepHoursStr = fmt.Sprintf("%.2f", existing.SleepHours)
+		breakfast = existing.Breakfast
+		lunch = existing.Lunch
+		dinner = existing.Dinner
+		snacks = existing.Snacks
+		dayWellSpent = existing.DayWellSpent
+		whatIDidToday = existing.WhatIDidToday
+		whatWentWell = existing.WhatWentWell
+		whatToImprove = existing.WhatToImprove
+		quickNotes = existing.QuickNotes
+		date = existing.Date
+	}
 
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -61,7 +85,7 @@ func (h *HuhInterviewer) AskDailyLog() (*domain.DailyLog, error) {
 	}
 
 	return domain.NewDailyLog(domain.NewDailyLogInput{
-		Date:          time.Now(),
+		Date:          date,
 		Training:      training,
 		Reading:       reading,
 		Coding:        coding,

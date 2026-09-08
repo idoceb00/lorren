@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"time"
+
 	"github.com/idoceb00/lorren/internal/domain"
 	"github.com/idoceb00/lorren/internal/interviewer"
+	"github.com/idoceb00/lorren/internal/service"
 	"github.com/idoceb00/lorren/internal/storage"
 	"github.com/spf13/cobra"
 )
@@ -15,12 +18,7 @@ var dayCmd = &cobra.Command{
 		var interviewerPort domain.Interviewer = interviewer.NewHuhInterviewer()
 		var repositoryPort domain.Repository = storage.NewObsidianWriter(appConfig.VaultPath)
 
-		log, err := interviewerPort.AskDailyLog()
-		if err != nil {
-			return err
-		}
-
-		return repositoryPort.SaveDailyLog(log)
+		return service.RecordDay(interviewerPort, repositoryPort, time.Now())
 	},
 }
 
