@@ -59,7 +59,7 @@ func createConfig(path string) error {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Where is your Obsidian vault?").
+				Title("Where should lorren write daily notes?").
 				Description("Full path, or ~/... from your home folder.").
 				Value(&vaultPath),
 		),

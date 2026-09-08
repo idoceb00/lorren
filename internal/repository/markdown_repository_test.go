@@ -1,4 +1,4 @@
-package storage_test
+package repository_test
 
 import (
 	"fmt"
@@ -12,10 +12,10 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/idoceb00/lorren/internal/domain"
-	"github.com/idoceb00/lorren/internal/storage"
+	"github.com/idoceb00/lorren/internal/repository"
 )
 
-// frontmatter mirrors the scalar fields ObsidianWriter writes to YAML,
+// frontmatter mirrors the scalar fields MarkdownRepository writes to YAML,
 // used to parse and assert on the generated frontmatter block.
 type frontmatter struct {
 	Date         string  `yaml:"date"`
@@ -37,7 +37,7 @@ func labeledField(label, key, value string) string {
 	return fmt.Sprintf("**%s:**\n%s", label, markedField(key, value))
 }
 
-func TestObsidianWriter_SaveDailyLog(t *testing.T) {
+func TestMarkdownRepository_SaveDailyLog(t *testing.T) {
 	fixedDate := time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC)
 
 	fullLog := &domain.DailyLog{
@@ -151,7 +151,7 @@ func TestObsidianWriter_SaveDailyLog(t *testing.T) {
 			if tt.subdir != "" {
 				dir = filepath.Join(dir, tt.subdir)
 			}
-			writer := storage.NewObsidianWriter(dir)
+			writer := repository.NewMarkdownRepository(dir)
 
 			gotErr := writer.SaveDailyLog(tt.log)
 			if gotErr != nil {

@@ -5,12 +5,12 @@
 ![License](https://img.shields.io/github/license/idoceb00/lorren)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
 
-A CLI wizard that interviews you about your daily habits and training sessions, then writes the results as structured markdown files into your Obsidian vault.
+A CLI wizard that interviews you about your daily habits and training sessions, then writes the results as structured markdown files with YAML frontmatter, compatible with Obsidian and its Dataview plugin.
 
 ## Features
 
 - **`lorren day`** — interactive wizard for daily habits, meals, and a short day evaluation. Writes a markdown file per day, with Dataview-ready frontmatter.
-- **First-run setup** — asks for your Obsidian vault path once and remembers it. Validates the folder exists, never creates it.
+- **First-run setup** — asks for your daily notes directory once and remembers it. Validates the folder exists, never creates it.
 
 ## Installation
 
@@ -91,7 +91,7 @@ make fmt    # list files with formatting issues
 
 ## Status
 
-`lorren day` works end to end, with unit tests covering `internal/domain` and `internal/storage`. `lorren train` (training session logging) is planned, not started yet.
+`lorren day` works end to end, with unit tests covering `internal/domain` and `internal/repository`. `lorren train` (training session logging) is planned, not started yet.
 
 ## Built with
 
