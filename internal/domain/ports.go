@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type Interviewer interface {
-	AskDailyLog() (*DailyLog, error)
+	AskDailyLog(existing *DailyLog) (*DailyLog, error)
 }
 
 type Repository interface {
