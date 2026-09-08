@@ -1,4 +1,4 @@
-package storage
+package repository
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-type ObsidianWriter struct {
+type MarkdownRepository struct {
 	dailyNotesDir string
 }
 
@@ -41,11 +41,11 @@ var fieldPatterns = map[string]*regexp.Regexp{
 	"quick_notes":      compileFieldPattern("quick_notes"),
 }
 
-func NewObsidianWriter(dir string) *ObsidianWriter {
-	return &ObsidianWriter{dailyNotesDir: dir}
+func NewMarkdownRepository(dir string) *MarkdownRepository {
+	return &MarkdownRepository{dailyNotesDir: dir}
 }
 
-func (w *ObsidianWriter) SaveDailyLog(log *domain.DailyLog) error {
+func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) error {
 	if err := os.MkdirAll(w.dailyNotesDir, 0o755); err != nil {
 		return fmt.Errorf("creating daily notes dir: %w", err)
 	}
@@ -62,7 +62,7 @@ func (w *ObsidianWriter) SaveDailyLog(log *domain.DailyLog) error {
 	return nil
 }
 
-func (w *ObsidianWriter) FindByDate(date time.Time) (*domain.DailyLog, error) {
+func (w *MarkdownRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {
 	filename := date.Format("2006-01-02") + ".md"
 	path := filepath.Join(w.dailyNotesDir, filename)
 
