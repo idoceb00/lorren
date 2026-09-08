@@ -110,7 +110,7 @@ func splitFrontmatter(content string) (fm, body string, err error) {
 }
 
 func extractField(body, key string) string {
-	pattern := fmt.Sprintf(`(?s)<!-- lorren:%s:start -->\n(.*?)\n<!-- lorren:%s:end -->`, key, key)
+	pattern := fmt.Sprintf(`(?s)%s\n(.*?)\n%s`, regexp.QuoteMeta(markerStart(key)), regexp.QuoteMeta(markerEnd(key)))
 	re := regexp.MustCompile(pattern)
 	match := re.FindStringSubmatch(body)
 	if match == nil {
@@ -155,5 +155,13 @@ func writeField(b *strings.Builder, label, key, value string) {
 	if label != "" {
 		fmt.Fprintf(b, "**%s:**\n", label)
 	}
-	fmt.Fprintf(b, "<!-- lorren:%s:start -->\n%s\n<!-- lorren:%s:end -->\n\n", key, value, key)
+	fmt.Fprintf(b, "%s\n%s\n%s\n\n", markerStart(key), value, markerEnd(key))
+}
+
+func markerStart(key string) string {
+	return fmt.Sprintf("<!-- lorren:%s:start -->", key)
+}
+
+func markerEnd(key string) string {
+	return fmt.Sprintf("<!-- lorren:%s:end -->", key)
 }
