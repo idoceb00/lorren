@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,14 @@ type frontmatter struct {
 	Stretching   bool    `yaml:"stretching"`
 	SleepHours   float64 `yaml:"sleep_hours"`
 	DayWellSpent bool    `yaml:"day_well_spent"`
+}
+
+func markedField(key, value string) string {
+	return fmt.Sprintf("<!-- lorren:%s:start -->\n%s\n<!-- lorren:%s:end -->", key, value, key)
+}
+
+func labeledField(label, key, value string) string {
+	return fmt.Sprintf("**%s:**\n%s", label, markedField(key, value))
 }
 
 func TestObsidianWriter_SaveDailyLog(t *testing.T) {
@@ -83,14 +92,14 @@ func TestObsidianWriter_SaveDailyLog(t *testing.T) {
 				DayWellSpent: true,
 			},
 			wantBodyFragments: []string{
-				"**Breakfast:** oats and coffee",
-				"**Lunch:** chicken and rice",
-				"**Dinner:** salad",
-				"**Snacks:** almonds",
-				"**What I did today:** gym and work",
-				"**What went well:** good focus",
-				"**What to improve:** sleep earlier",
-				"felt strong today",
+				labeledField("Breakfast", "breakfast", "oats and coffee"),
+				labeledField("Lunch", "lunch", "chicken and rice"),
+				labeledField("Dinner", "dinner", "salad"),
+				labeledField("Snacks", "snacks", "almonds"),
+				labeledField("What I did today", "what_i_did_today", "gym and work"),
+				labeledField("What went well", "what_went_well", "good focus"),
+				labeledField("What to improve", "what_to_improve", "sleep earlier"),
+				markedField("quick_notes", "felt strong today"),
 			},
 			wantErr: false,
 		},
@@ -110,7 +119,7 @@ func TestObsidianWriter_SaveDailyLog(t *testing.T) {
 				DayWellSpent: true,
 			},
 			wantBodyFragments: []string{
-				"**Breakfast:** oats and coffee",
+				labeledField("Breakfast", "breakfast", "oats and coffee"),
 			},
 			wantErr: false,
 		},
@@ -130,7 +139,7 @@ func TestObsidianWriter_SaveDailyLog(t *testing.T) {
 				DayWellSpent: false,
 			},
 			wantBodyFragments: []string{
-				"**Breakfast:** \n",
+				markedField("breakfast", ""),
 			},
 			wantErr: false,
 		},
