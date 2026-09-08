@@ -1,9 +1,12 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
+
+var ErrNotFound = errors.New("daily log not found")
 
 // DailyLog represents a single day's habit tracking entry
 type DailyLog struct {
