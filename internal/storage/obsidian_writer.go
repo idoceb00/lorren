@@ -1,16 +1,33 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/idoceb00/lorren/internal/domain"
+	"go.yaml.in/yaml/v3"
 )
 
 type ObsidianWriter struct {
 	dailyNotesDir string
+}
+
+// frontmatter mirrors the scalar fields written to the YAML block.
+// Field order doesn't matter for yaml.Unmarshal, only the tags do.
+type frontmatter struct {
+	Training     bool    `yaml:"training"`
+	Reading      bool    `yaml:"reading"`
+	Coding       bool    `yaml:"coding"`
+	Meditation   bool    `yaml:"meditation"`
+	NoSmoking    bool    `yaml:"no_smoking"`
+	Stretching   bool    `yaml:"stretching"`
+	SleepHours   float64 `yaml:"sleep_hours"`
+	DayWellSpent bool    `yaml:"day_well_spent"`
 }
 
 func NewObsidianWriter(dir string) *ObsidianWriter {
@@ -34,6 +51,74 @@ func (w *ObsidianWriter) SaveDailyLog(log *domain.DailyLog) error {
 	return nil
 }
 
+func (w *ObsidianWriter) FindByDate(date time.Time) (*domain.DailyLog, error) {
+	filename := date.Format("2006-01-02") + ".md"
+	path := filepath.Join(w.dailyNotesDir, filename)
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("reading daily log file: %w", err)
+	}
+
+	fm, body, err := splitFrontmatter(string(raw))
+	if err != nil {
+		return nil, fmt.Errorf("parsing daily log fil: %w", err)
+	}
+
+	var meta frontmatter
+	if err := yaml.Unmarshal([]byte(fm), &meta); err != nil {
+		return nil, fmt.Errorf("parsing frontmatter: %w", err)
+	}
+
+	return domain.NewDailyLog(domain.NewDailyLogInput{
+		Date:          date,
+		Training:      meta.Training,
+		Reading:       meta.Reading,
+		Coding:        meta.Coding,
+		Meditation:    meta.Meditation,
+		NoSmoking:     meta.NoSmoking,
+		Stretching:    meta.Stretching,
+		SleepHours:    meta.SleepHours,
+		DayWellSpent:  meta.DayWellSpent,
+		Breakfast:     extractField(body, "breakfast"),
+		Lunch:         extractField(body, "lunch"),
+		Dinner:        extractField(body, "dinner"),
+		Snacks:        extractField(body, "snacks"),
+		WhatIDidToday: extractField(body, "what_i_did_today"),
+		WhatWentWell:  extractField(body, "what_went_well"),
+		WhatToImprove: extractField(body, "what_to_improve"),
+		QuickNotes:    extractField(body, "quick_notes"),
+	})
+}
+
+// splitFrontmatter separates the leading YAML block (between --- markers)
+// from the rest of the markdown body.
+func splitFrontmatter(content string) (fm, body string, err error) {
+	const delim = "---\n"
+	if !strings.HasPrefix(content, delim) {
+		return "", "", fmt.Errorf("missing frontmatter opening delimiter")
+	}
+	rest := content[len(delim):]
+	idx := strings.Index(rest, delim)
+	if idx == -1 {
+		return "", "", fmt.Errorf("missing frontmatter closing delimiter")
+	}
+	return rest[:idx], rest[idx+len(delim):], nil
+}
+
+func extractField(body, key string) string {
+	pattern := fmt.Sprintf(`(?s)<!-- lorren:%s:start -->\n(.*?)\n<!-- lorren:%s:end -->`, key, key)
+	re := regexp.MustCompile(pattern)
+	match := re.FindStringSubmatch(body)
+	if match == nil {
+		return ""
+	}
+	return match[1]
+}
+
 func buildMarkdown(log *domain.DailyLog) string {
 	var b strings.Builder
 
@@ -50,17 +135,25 @@ func buildMarkdown(log *domain.DailyLog) string {
 	fmt.Fprintf(&b, "---\n\n")
 
 	fmt.Fprintf(&b, "## 🍽️ Meals\n\n")
-	fmt.Fprintf(&b, "**Breakfast:** %s\n\n", log.Breakfast)
-	fmt.Fprintf(&b, "**Lunch:** %s\n\n", log.Lunch)
-	fmt.Fprintf(&b, "**Dinner:** %s\n\n", log.Dinner)
-	fmt.Fprintf(&b, "**Snacks:** %s\n\n", log.Snacks)
+	writeField(&b, "Breakfast", "breakfast", log.Breakfast)
+	writeField(&b, "Lunch", "lunch", log.Lunch)
+	writeField(&b, "Dinner", "dinner", log.Dinner)
+	writeField(&b, "Snacks", "snacks", log.Snacks)
 
 	fmt.Fprintf(&b, "## 📆 Day\n\n")
-	fmt.Fprintf(&b, "**What I did today:** %s\n\n", log.WhatIDidToday)
-	fmt.Fprintf(&b, "**What went well:** %s\n\n", log.WhatWentWell)
-	fmt.Fprintf(&b, "**What to improve:** %s\n\n", log.WhatToImprove)
+	writeField(&b, "What I did today", "what_i_did_today", log.WhatIDidToday)
+	writeField(&b, "What went well", "what_went_well", log.WhatWentWell)
+	writeField(&b, "What to improve", "what_to_improve", log.WhatToImprove)
 
-	fmt.Fprintf(&b, "## 🎯 Quick notes\n\n%s\n", log.QuickNotes)
+	fmt.Fprintf(&b, "## 🎯 Quick notes\n\n")
+	writeField(&b, "", "quick_notes", log.QuickNotes)
 
 	return b.String()
+}
+
+func writeField(b *strings.Builder, label, key, value string) {
+	if label != "" {
+		fmt.Fprintf(b, "**%s:**\n", label)
+	}
+	fmt.Fprintf(b, "<!-- lorren:%s:start -->\n%s\n<!-- lorren:%s:end -->\n\n", key, value, key)
 }
