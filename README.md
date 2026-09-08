@@ -1,9 +1,9 @@
-# Lorren
+# 📝 Lorren
 
 ![Go Version](https://img.shields.io/badge/go-1.27%2B-00ADD8?logo=go&logoColor=white)
+![CI](https://github.com/idoceb00/lorren/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/github/license/idoceb00/lorren)
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
-![CI](https://github.com/idoceb00/lorren/actions/workflows/ci.yml/badge.svg)
 
 A CLI wizard that interviews you about your daily habits and training sessions, then writes the results as structured markdown files into your Obsidian vault.
 
@@ -19,7 +19,33 @@ Requires Go 1.27+.
 ```bash
 git clone https://github.com/idoceb00/lorren.git
 cd lorren
-go build -o lorren ./cmd/lorren
+```
+
+**To try it locally**, build a binary in the project directory:
+
+```bash
+make build
+./bin/lorren day
+```
+
+**To use it day to day**, install it onto your `PATH` instead:
+
+```bash
+make install
+```
+
+This runs `go install ./cmd/lorren`, which compiles the binary and places it in `$GOBIN` (or `$GOPATH/bin` if `GOBIN` isn't set — typically `~/go/bin`). Make sure that directory is on your `PATH`, then run it from anywhere:
+
+```bash
+lorren day
+```
+
+### Updating
+
+Pull the latest changes and reinstall — this overwrites the existing binary in place:
+
+```bash
+git checkout main && git pull && make install
 ```
 
 If you're going to contribute, also install the git hooks (requires [lefthook](https://github.com/evilmartians/lefthook)):
@@ -33,7 +59,7 @@ This runs `gofmt` and `go vet` before each commit, and `go test ./...` before ea
 ## Usage
 
 ```bash
-./lorren day
+lorren day
 ```
 
 First run asks for your vault path and saves it to `~/.config/lorren/config.yaml`. Every run after that goes straight to the habit wizard, writing (or overwriting) `YYYY-MM-DD.md` in your vault:
@@ -55,6 +81,14 @@ sleep_hours: 7.50
 
 Lorren follows a hexagonal (ports & adapters) architecture: a plain Go domain at the center that knows nothing about Cobra, huh, or the filesystem — just interfaces describing what it needs. Everything else plugs into those interfaces, so the storage backend or the wizard library can be swapped without touching business logic.
 
+## Development
+
+```bash
+make test   # run tests
+make lint   # run golangci-lint
+make fmt    # list files with formatting issues
+```
+
 ## Status
 
 `lorren day` works end to end, with unit tests covering `internal/domain` and `internal/storage`. `lorren train` (training session logging) is planned, not started yet.
@@ -64,8 +98,8 @@ Lorren follows a hexagonal (ports & adapters) architecture: a plain Go domain at
 - [Go](https://go.dev/) 1.27+
 - [Cobra](https://github.com/spf13/cobra) — CLI command routing
 - [Viper](https://github.com/spf13/viper) — configuration
-- [huh](https://github.com/charmbracelet/huh) — interactive terminal 
-- [GitHub Actions](https://github.com/features/actions) — CI (build, test, lint on every push to main)forms
+- [huh](https://github.com/charmbracelet/huh) — interactive terminal forms
+- [GitHub Actions](https://github.com/features/actions) — CI (build, test, lint on every push to main)
 
 ## License
 
