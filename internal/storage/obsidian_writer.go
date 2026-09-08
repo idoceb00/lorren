@@ -30,6 +30,17 @@ type frontmatter struct {
 	DayWellSpent bool    `yaml:"day_well_spent"`
 }
 
+var fieldPatterns = map[string]*regexp.Regexp{
+	"breakfast":        compileFieldPattern("breakfast"),
+	"lunch":            compileFieldPattern("lunch"),
+	"dinner":           compileFieldPattern("dinner"),
+	"snacks":           compileFieldPattern("snacks"),
+	"what_i_did_today": compileFieldPattern("what_i_did_today"),
+	"what_went_well":   compileFieldPattern("what_went_well"),
+	"what_to_improve":  compileFieldPattern("what_to_improve"),
+	"quick_notes":      compileFieldPattern("quick_notes"),
+}
+
 func NewObsidianWriter(dir string) *ObsidianWriter {
 	return &ObsidianWriter{dailyNotesDir: dir}
 }
@@ -110,13 +121,20 @@ func splitFrontmatter(content string) (fm, body string, err error) {
 }
 
 func extractField(body, key string) string {
-	pattern := fmt.Sprintf(`(?s)%s\n(.*?)\n%s`, regexp.QuoteMeta(markerStart(key)), regexp.QuoteMeta(markerEnd(key)))
-	re := regexp.MustCompile(pattern)
+	re, ok := fieldPatterns[key]
+	if !ok {
+		return ""
+	}
 	match := re.FindStringSubmatch(body)
 	if match == nil {
 		return ""
 	}
 	return match[1]
+}
+
+func compileFieldPattern(key string) *regexp.Regexp {
+	pattern := fmt.Sprintf(`(?s)%s\n(.*?)\n%s`, regexp.QuoteMeta(markerStart(key)), regexp.QuoteMeta(markerEnd(key)))
+	return regexp.MustCompile(pattern)
 }
 
 func buildMarkdown(log *domain.DailyLog) string {
