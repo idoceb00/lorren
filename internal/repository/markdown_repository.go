@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/idoceb00/lorren/internal/domain"
+	"github.com/idoceb00/lorren/internal/markdown"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -74,15 +75,17 @@ func (w *MarkdownRepository) FindByDate(date time.Time) (*domain.DailyLog, error
 		return nil, fmt.Errorf("reading daily log file: %w", err)
 	}
 
-	fm, body, err := splitFrontmatter(string(raw))
+	fm, rawBody, err := markdown.SplitFrontmatter(raw)
 	if err != nil {
 		return nil, fmt.Errorf("parsing daily log fil: %w", err)
 	}
 
 	var meta frontmatter
-	if err := yaml.Unmarshal([]byte(fm), &meta); err != nil {
+	if err := yaml.Unmarshal(fm, &meta); err != nil {
 		return nil, fmt.Errorf("parsing frontmatter: %w", err)
 	}
+
+	body := string(rawBody)
 
 	return domain.NewDailyLog(domain.NewDailyLogInput{
 		Date:          date,
@@ -103,21 +106,6 @@ func (w *MarkdownRepository) FindByDate(date time.Time) (*domain.DailyLog, error
 		WhatToImprove: extractField(body, "what_to_improve"),
 		QuickNotes:    extractField(body, "quick_notes"),
 	})
-}
-
-// splitFrontmatter separates the leading YAML block (between --- markers)
-// from the rest of the markdown body.
-func splitFrontmatter(content string) (fm, body string, err error) {
-	const delim = "---\n"
-	if !strings.HasPrefix(content, delim) {
-		return "", "", fmt.Errorf("missing frontmatter opening delimiter")
-	}
-	rest := content[len(delim):]
-	idx := strings.Index(rest, delim)
-	if idx == -1 {
-		return "", "", fmt.Errorf("missing frontmatter closing delimiter")
-	}
-	return rest[:idx], rest[idx+len(delim):], nil
 }
 
 func extractField(body, key string) string {
