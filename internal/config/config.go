@@ -10,8 +10,30 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	defaultPlansDir      = "plans"
+	defaultTrainingsDir  = "trainings"
+	defaultDailyNotesDir = "Diario"
+)
+
 type Config struct {
-	VaultPath string `mapstructure:"vault_path"`
+	VaultPath     string `mapstructure:"vault_path"`
+	PlansDir      string `mapstructure:"plans_dir"`
+	TrainingsDir  string `mapstructure:"trainings_dir"`
+	DailyNotesDir string `mapstructure:"daily_notes_dir"`
+	ActivePlan    string `mapstructure:"active_plan"`
+}
+
+func (c *Config) PlansPath() string {
+	return filepath.Join(c.VaultPath, c.PlansDir)
+}
+
+func (c *Config) TrainingsPath() string {
+	return filepath.Join(c.VaultPath, c.TrainingsDir)
+}
+
+func (c *Config) DailyNotesPath() string {
+	return filepath.Join(c.VaultPath, c.DailyNotesDir)
 }
 
 // Load reads the config file from disk. If it doesn't exist yet, it runs
@@ -32,6 +54,7 @@ func Load() (*Config, error) {
 
 	viper.SetConfigFile(path)
 	viper.SetConfigType("yaml")
+	setDefaults()
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("reading config file: %w", err)
@@ -42,7 +65,31 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("parsing config file: %w", err)
 	}
 
+	if cfg.VaultPath == "" {
+		return nil, fmt.Errorf("vault_path is missing from %s", path)
+	}
+
 	return &cfg, nil
+}
+
+func SetActivePlan(id string) error {
+	path, err := configFilePath()
+	if err != nil {
+		return err
+	}
+
+	viper.Set("active_plan", id)
+	if err := viper.WriteConfigAs(path); err != nil {
+		return fmt.Errorf("writing config file: %w", err)
+	}
+
+	return nil
+}
+
+func setDefaults() {
+	viper.SetDefault("plans_dir", defaultPlansDir)
+	viper.SetDefault("trainings_dir", defaultTrainingsDir)
+	viper.SetDefault("daily_notes_dir", defaultDailyNotesDir)
 }
 
 func configFilePath() (string, error) {
@@ -59,7 +106,7 @@ func createConfig(path string) error {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Where should lorren write daily notes?").
+				Title("Where is your vault?").
 				Description("Full path, or ~/... from your home folder.").
 				Value(&vaultPath),
 		),
@@ -87,6 +134,10 @@ func createConfig(path string) error {
 	}
 
 	viper.Set("vault_path", vaultPath)
+	viper.Set("plans_dir", defaultPlansDir)
+	viper.Set("trainings_dir", defaultTrainingsDir)
+	viper.Set("daily_notes_dir", defaultDailyNotesDir)
+
 	if err := viper.WriteConfigAs(path); err != nil {
 		return fmt.Errorf("writing config file: %w", err)
 	}
