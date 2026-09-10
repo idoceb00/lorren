@@ -18,7 +18,7 @@ func NewTrainingRepository(dir string) *TrainingRepository {
 	return &TrainingRepository{dir: dir}
 }
 
-func (r *TrainingRepository) SaveTrainingSession(s *domain.TrainingSession) (string, error) {
+func (r *TrainingRepository) SaveTrainingLog(s *domain.TrainingLog) (string, error) {
 	if err := os.MkdirAll(r.dir, 0o755); err != nil {
 		return "", fmt.Errorf("creating trainings dir: %w", err)
 	}
@@ -32,7 +32,7 @@ func (r *TrainingRepository) SaveTrainingSession(s *domain.TrainingSession) (str
 	return path, nil
 }
 
-func trainingFileName(s *domain.TrainingSession) string {
+func trainingFileName(s *domain.TrainingLog) string {
 	return fmt.Sprintf("%s %s%s", s.Date.Format("2006-01-02"), sanitize(s.SessionName), planFileExt)
 }
 
@@ -42,7 +42,7 @@ func sanitize(name string) string {
 	return strings.TrimSpace(replacer.Replace(name))
 }
 
-func buildTrainingMarkdown(s *domain.TrainingSession) string {
+func buildTrainingMarkdown(s *domain.TrainingLog) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "---\n")
@@ -69,7 +69,7 @@ func buildTrainingMarkdown(s *domain.TrainingSession) string {
 }
 
 // writeDetailFrontmatter adds the queryable scalars each kind contributes.
-func writeDetailFrontmatter(b *strings.Builder, detail domain.SessionDetail) {
+func writeDetailFrontmatter(b *strings.Builder, detail domain.TrainingDetail) {
 	switch d := detail.(type) {
 	case domain.StrengthDetail:
 		fmt.Fprintf(b, "total_volume_kg: %.1f\n", totalVolume(d))
@@ -79,7 +79,7 @@ func writeDetailFrontmatter(b *strings.Builder, detail domain.SessionDetail) {
 }
 
 // writeDetailBody writes the part that is read, not queried.
-func writeDetailBody(b *strings.Builder, detail domain.SessionDetail) {
+func writeDetailBody(b *strings.Builder, detail domain.TrainingDetail) {
 	d, ok := detail.(domain.StrengthDetail)
 	if !ok {
 		return

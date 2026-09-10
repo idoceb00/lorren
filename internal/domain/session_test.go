@@ -74,7 +74,7 @@ func TestNewSessionTemplateValidatesByKind(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := domain.NewSessionTemplate(tt.session, tt.kind, "fuerza", tt.exercises)
+			_, err := domain.NewSession(tt.session, tt.kind, "fuerza", tt.exercises)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("NewSessionTemplate() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -163,7 +163,7 @@ func TestNewSessionTemplateValidatesExercises(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := domain.NewSessionTemplate("Gym A", domain.KindStrength, "fuerza", tt.exercises)
+			_, err := domain.NewSession("Gym A", domain.KindStrength, "fuerza", tt.exercises)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("NewSessionTemplate() error = %v, wantErr %v", err, tt.wantErr)
 			}

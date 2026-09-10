@@ -9,10 +9,10 @@ import (
 type Plan struct {
 	id       string
 	name     string
-	sessions []SessionTemplate
+	sessions []Session
 }
 
-func NewPlan(id, name string, sessions []SessionTemplate) (Plan, error) {
+func NewPlan(id, name string, sessions []Session) (Plan, error) {
 	if strings.TrimSpace(id) == "" {
 		return Plan{}, fmt.Errorf("plan id is required")
 	}
@@ -43,8 +43,8 @@ func (p Plan) ID() string   { return p.id }
 func (p Plan) Name() string { return p.name }
 
 // Sessions returns a copy so callers cannot mutate the validated plan.
-func (p Plan) Sessions() []SessionTemplate {
-	out := make([]SessionTemplate, len(p.sessions))
+func (p Plan) Sessions() []Session {
+	out := make([]Session, len(p.sessions))
 	copy(out, p.sessions)
 	return out
 }
@@ -59,12 +59,12 @@ func (p Plan) SessionNames() []string {
 }
 
 // Session looks up a session by name, case insensitively
-func (p Plan) Session(name string) (SessionTemplate, error) {
+func (p Plan) Session(name string) (Session, error) {
 	target := normalize(name)
 	for _, s := range p.sessions {
 		if normalize(s.Name) == target {
 			return s, nil
 		}
 	}
-	return SessionTemplate{}, fmt.Errorf("session %q: %w", name, ErrNotFound)
+	return Session{}, fmt.Errorf("session %q: %w", name, ErrNotFound)
 }

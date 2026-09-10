@@ -33,46 +33,46 @@ type Exercise struct {
 	BodyWeight bool
 }
 
-// SessionTemplate is one of the sessions a plan makes available
-type SessionTemplate struct {
+// Session is one of the sessions a plan makes available
+type Session struct {
 	Name      string
 	Kind      Kind
 	Modality  string
 	Exercises []Exercise
 }
 
-// NewSessionTemplate validates a session template. Only strength sessions
+// NewSession validates a session template. Only strength sessions
 // prescribe exercises: cardio activity is chosen when logging, and sport
 // sessions are not prescribed at all.
-func NewSessionTemplate(name string, kind Kind, modality string, exercises []Exercise) (SessionTemplate, error) {
+func NewSession(name string, kind Kind, modality string, exercises []Exercise) (Session, error) {
 	if strings.TrimSpace(name) == "" {
-		return SessionTemplate{}, fmt.Errorf("session name is required")
+		return Session{}, fmt.Errorf("session name is required")
 	}
 	if !kind.Valid() {
-		return SessionTemplate{}, fmt.Errorf("session %q: unknown kind %q", name, kind)
+		return Session{}, fmt.Errorf("session %q: unknown kind %q", name, kind)
 	}
 
 	if kind == KindStrength {
 		if len(exercises) == 0 {
-			return SessionTemplate{}, fmt.Errorf("strength session %q has no exercises", name)
+			return Session{}, fmt.Errorf("strength session %q has no exercises", name)
 		}
 	} else if len(exercises) > 0 {
-		return SessionTemplate{}, fmt.Errorf("session %q is %s and cannot prescribe exercises", name, kind)
+		return Session{}, fmt.Errorf("session %q is %s and cannot prescribe exercises", name, kind)
 	}
 
 	seen := make(map[string]struct{}, len(exercises))
 	for i, e := range exercises {
 		if err := validateExercise(e); err != nil {
-			return SessionTemplate{}, fmt.Errorf("session %q, exercise %d: %w", name, i+1, err)
+			return Session{}, fmt.Errorf("session %q, exercise %d: %w", name, i+1, err)
 		}
 		key := normalize(e.Name)
 		if _, dup := seen[key]; dup {
-			return SessionTemplate{}, fmt.Errorf("session %q: duplicate exercise name %q", name, e.Name)
+			return Session{}, fmt.Errorf("session %q: duplicate exercise name %q", name, e.Name)
 		}
 		seen[key] = struct{}{}
 	}
 
-	return SessionTemplate{
+	return Session{
 		Name:      strings.TrimSpace(name),
 		Kind:      kind,
 		Modality:  strings.TrimSpace(modality),
