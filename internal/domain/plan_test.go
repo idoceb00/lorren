@@ -17,24 +17,40 @@ func validExercise() domain.Exercise {
 	}
 }
 
-func validStrengthSession() domain.SessionTemplate {
-	return domain.SessionTemplate{
-		Name:      "Gym A",
-		Kind:      domain.KindStrength,
-		Modality:  "fuerza",
-		Exercises: []domain.Exercise{validExercise()},
+func validStrengthSession(t *testing.T) domain.SessionTemplate {
+	t.Helper()
+
+	s, err := domain.NewSessionTemplate("Gym A", domain.KindStrength, "fuerza", []domain.Exercise{validExercise()})
+	if err != nil {
+		t.Fatalf("building a valid strength session: %v", err)
 	}
+	return s
 }
 
-func validSportSession() domain.SessionTemplate {
-	return domain.SessionTemplate{
-		Name:     "Boxeo",
-		Kind:     domain.KindSport,
-		Modality: "boxeo",
+func validSportSession(t *testing.T) domain.SessionTemplate {
+	t.Helper()
+
+	s, err := domain.NewSessionTemplate("Boxeo", domain.KindSport, "boxeo", nil)
+	if err != nil {
+		t.Fatalf("building a valid sport session: %v", err)
 	}
+	return s
+}
+
+func validCardioSession(t *testing.T) domain.SessionTemplate {
+	t.Helper()
+
+	s, err := domain.NewSessionTemplate("Zone 2", domain.KindCardio, "zona 2", nil)
+	if err != nil {
+		t.Fatalf("building a valid cardio session: %v", err)
+	}
+	return s
 }
 
 func TestNewPlan(t *testing.T) {
+	renamed := validStrengthSession(t)
+	renamed.Name = "  gym a  "
+
 	tests := []struct {
 		name     string
 		id       string
@@ -47,23 +63,23 @@ func TestNewPlan(t *testing.T) {
 			id:       "fuerza-boxeo",
 			planName: "Fuerza y boxeo",
 			sessions: []domain.SessionTemplate{
-				validStrengthSession(),
-				validSportSession(),
-				{Name: "Zone 2", Kind: domain.KindCardio, Modality: "zona 2"},
+				validStrengthSession(t),
+				validSportSession(t),
+				validCardioSession(t),
 			},
 		},
 		{
 			name:     "missing id",
 			id:       "  ",
 			planName: "Fuerza y boxeo",
-			sessions: []domain.SessionTemplate{validStrengthSession()},
+			sessions: []domain.SessionTemplate{validStrengthSession(t)},
 			wantErr:  true,
 		},
 		{
 			name:     "missing name",
 			id:       "fuerza-boxeo",
 			planName: "",
-			sessions: []domain.SessionTemplate{validStrengthSession()},
+			sessions: []domain.SessionTemplate{validStrengthSession(t)},
 			wantErr:  true,
 		},
 		{
@@ -78,12 +94,8 @@ func TestNewPlan(t *testing.T) {
 			id:       "fuerza-boxeo",
 			planName: "Fuerza y boxeo",
 			sessions: []domain.SessionTemplate{
-				validStrengthSession(),
-				func() domain.SessionTemplate {
-					s := validStrengthSession()
-					s.Name = "  gym a  "
-					return s
-				}(),
+				validStrengthSession(t),
+				renamed,
 			},
 			wantErr: true,
 		},
@@ -101,9 +113,9 @@ func TestNewPlan(t *testing.T) {
 
 func TestPlanSessionNamesKeepsPlanOrder(t *testing.T) {
 	p, err := domain.NewPlan("fuerza-boxeo", "Fuerza y boxeo", []domain.SessionTemplate{
-		validStrengthSession(),
-		validSportSession(),
-		{Name: "Zone 2", Kind: domain.KindCardio},
+		validStrengthSession(t),
+		validSportSession(t),
+		validCardioSession(t),
 	})
 	if err != nil {
 		t.Fatalf("NewPlan() unexpected error: %v", err)
@@ -123,8 +135,8 @@ func TestPlanSessionNamesKeepsPlanOrder(t *testing.T) {
 
 func TestPlanSession(t *testing.T) {
 	p, err := domain.NewPlan("fuerza-boxeo", "Fuerza y boxeo", []domain.SessionTemplate{
-		validStrengthSession(),
-		validSportSession(),
+		validStrengthSession(t),
+		validSportSession(t),
 	})
 	if err != nil {
 		t.Fatalf("NewPlan() unexpected error: %v", err)
@@ -149,7 +161,7 @@ func TestPlanSession(t *testing.T) {
 }
 
 func TestPlanSessionsIsACopy(t *testing.T) {
-	p, err := domain.NewPlan("fuerza-boxeo", "Fuerza y boxeo", []domain.SessionTemplate{validStrengthSession()})
+	p, err := domain.NewPlan("fuerza-boxeo", "Fuerza y boxeo", []domain.SessionTemplate{validStrengthSession(t)})
 	if err != nil {
 		t.Fatalf("NewPlan() unexpected error: %v", err)
 	}
