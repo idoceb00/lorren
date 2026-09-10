@@ -10,7 +10,11 @@ type TrainingInterviewer interface {
 	AskTrainingLog(plan Plan) (*TrainingLog, error)
 }
 
-type Repository interface {
+type TrainingRepository interface {
+	SaveTrainingLog(l *TrainingLog) (string, error)
+}
+
+type DailyRepository interface {
 	SaveDailyLog(log *DailyLog) error
 	FindByDate(date time.Time) (*DailyLog, error)
 }
