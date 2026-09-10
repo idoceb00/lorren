@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/idoceb00/lorren/internal/domain"
@@ -18,7 +19,14 @@ var dayCmd = &cobra.Command{
 		var interviewerPort domain.DailyInterviewer = interviewer.NewHuhInterviewer()
 		var repositoryPort domain.DailyRepository = repository.NewMarkdownRepository(appConfig.DailyNotesPath())
 
-		return service.RecordDay(interviewerPort, repositoryPort, time.Now())
+		path, err := service.RecordDay(interviewerPort, repositoryPort, time.Now())
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Saved to %s\n", path)
+
+		return nil
 	},
 }
 

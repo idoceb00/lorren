@@ -15,7 +15,7 @@ type TrainingRepository interface {
 }
 
 type DailyRepository interface {
-	SaveDailyLog(log *DailyLog) error
+	SaveDailyLog(log *DailyLog) (string, error)
 	FindByDate(date time.Time) (*DailyLog, error)
 }
 

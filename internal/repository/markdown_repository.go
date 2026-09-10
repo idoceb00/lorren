@@ -46,9 +46,9 @@ func NewMarkdownRepository(dir string) *MarkdownRepository {
 	return &MarkdownRepository{dailyNotesDir: dir}
 }
 
-func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) error {
+func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) (string, error) {
 	if err := os.MkdirAll(w.dailyNotesDir, 0o755); err != nil {
-		return fmt.Errorf("creating daily notes dir: %w", err)
+		return "", fmt.Errorf("creating daily notes dir: %w", err)
 	}
 
 	filename := log.Date.Format("2006-01-02") + ".md"
@@ -57,10 +57,10 @@ func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) error {
 	content := buildMarkdown(log)
 
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-		return fmt.Errorf("writing daily log file: %w", err)
+		return "", fmt.Errorf("writing daily log file: %w", err)
 	}
 
-	return nil
+	return path, nil
 }
 
 func (w *MarkdownRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {

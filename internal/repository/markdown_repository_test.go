@@ -153,7 +153,7 @@ func TestMarkdownRepository_SaveDailyLog(t *testing.T) {
 			}
 			writer := repository.NewMarkdownRepository(dir)
 
-			gotErr := writer.SaveDailyLog(tt.log)
+			_, gotErr := writer.SaveDailyLog(tt.log)
 			if gotErr != nil {
 				if !tt.wantErr {
 					t.Fatalf("SaveDailyLog() failed: %v", gotErr)
