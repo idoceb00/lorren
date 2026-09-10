@@ -67,7 +67,12 @@ func (r *PlanReader) LoadPlan(id string) (domain.Plan, error) {
 		return domain.Plan{}, fmt.Errorf("parsing plan %q: %w", id, err)
 	}
 
-	plan, err := domain.NewPlan(id, file.Plan, toSessions(file.Sessions))
+	sessions, err := toSessions(file.Sessions)
+	if err != nil {
+		return domain.Plan{}, fmt.Errorf("plan %q: %w", id, err)
+	}
+
+	plan, err := domain.NewPlan(id, file.Plan, sessions)
 	if err != nil {
 		return domain.Plan{}, err
 	}
@@ -101,17 +106,21 @@ func (r *PlanReader) ListPlans() ([]string, error) {
 	return ids, nil
 }
 
-func toSessions(in []sessionFile) []domain.SessionTemplate {
+func toSessions(in []sessionFile) ([]domain.SessionTemplate, error) {
 	out := make([]domain.SessionTemplate, 0, len(in))
 	for _, s := range in {
-		out = append(out, domain.SessionTemplate{
-			Name:      strings.TrimSpace(s.Name),
-			Kind:      domain.Kind(strings.ToLower(strings.TrimSpace(s.Kind))),
-			Modality:  strings.TrimSpace(s.Modality),
-			Exercises: toExercises(s.Exercises),
-		})
+		session, err := domain.NewSessionTemplate(
+			strings.TrimSpace(s.Name),
+			domain.Kind(strings.ToLower(strings.TrimSpace(s.Kind))),
+			strings.TrimSpace(s.Modality),
+			toExercises(s.Exercises),
+		)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, session)
 	}
-	return out
+	return out, nil
 }
 
 func toExercises(in []exerciseFile) []domain.Exercise {
