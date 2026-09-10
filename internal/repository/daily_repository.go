@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/idoceb00/lorren/internal/domain"
-	"github.com/idoceb00/lorren/internal/markdown"
+	"github.com/idoceb00/lorren/internal/frontmatter"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -20,7 +20,7 @@ type DailyRepository struct {
 
 // frontmatter mirrors the scalar fields written to the YAML block.
 // Field order doesn't matter for yaml.Unmarshal, only the tags do.
-type frontmatter struct {
+type dailyfrontmatter struct {
 	Training     bool    `yaml:"training"`
 	Reading      bool    `yaml:"reading"`
 	Coding       bool    `yaml:"coding"`
@@ -75,12 +75,12 @@ func (w *DailyRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {
 		return nil, fmt.Errorf("reading daily log file: %w", err)
 	}
 
-	fm, rawBody, err := markdown.SplitFrontmatter(raw)
+	fm, rawBody, err := frontmatter.Split(raw)
 	if err != nil {
 		return nil, fmt.Errorf("parsing daily log fil: %w", err)
 	}
 
-	var meta frontmatter
+	var meta dailyfrontmatter
 	if err := yaml.Unmarshal(fm, &meta); err != nil {
 		return nil, fmt.Errorf("parsing frontmatter: %w", err)
 	}

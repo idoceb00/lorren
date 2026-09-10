@@ -1,10 +1,10 @@
-package markdown_test
+package frontmatter_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/idoceb00/lorren/internal/markdown"
+	"github.com/idoceb00/lorren/internal/frontmatter"
 )
 
 func TestSplitFrontmatter(t *testing.T) {
@@ -54,23 +54,23 @@ func TestSplitFrontmatter(t *testing.T) {
 		{
 			name:    "no frontmatter",
 			input:   "# Just a note\n",
-			wantErr: markdown.ErrNoFrontmatter,
+			wantErr: frontmatter.ErrNotFound,
 		},
 		{
 			name:    "empty file",
 			input:   "",
-			wantErr: markdown.ErrNoFrontmatter,
+			wantErr: frontmatter.ErrNotFound,
 		},
 		{
 			name:    "unterminated frontmatter",
 			input:   "---\nplan: Fuerza\n",
-			wantErr: markdown.ErrUnterminatedFrontmatter,
+			wantErr: frontmatter.ErrUnterminated,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fm, body, err := markdown.SplitFrontmatter([]byte(tt.input))
+			fm, body, err := frontmatter.Split([]byte(tt.input))
 
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
@@ -95,7 +95,7 @@ func TestJoinRoundTrip(t *testing.T) {
 	fm := []byte("plan: Fuerza")
 	body := []byte("# Título\n\nTexto.")
 
-	gotFm, gotBody, err := markdown.SplitFrontmatter(markdown.Join(fm, body))
+	gotFm, gotBody, err := frontmatter.Split(frontmatter.Join(fm, body))
 	if err != nil {
 		t.Fatalf("SplitFrontmatter() unexpected error: %v", err)
 	}

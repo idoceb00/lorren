@@ -1,5 +1,4 @@
-// Package markdown provides low-level parsing helpers for markdown files with YAML frontmatter.
-package markdown
+package frontmatter
 
 import (
 	"bytes"
@@ -8,35 +7,35 @@ import (
 )
 
 var (
-	// ErrNoFrontmatter is returned when the file does not open with a frontmatter delimiter.
-	ErrNoFrontmatter = errors.New("no yaml frontmatter found")
+	// ErrNotFound is returned when the file does not open with a frontmatter delimiter.
+	ErrNotFound = errors.New("no yaml frontmatter found")
 
-	// ErrUnterminatedFrontmatter is returned when the opening delimiter has no matching closing one.
-	ErrUnterminatedFrontmatter = errors.New("unterminated yaml frontmatter")
+	// ErrUnterminated is returned when the opening delimiter has no matching closing one.
+	ErrUnterminated = errors.New("unterminated yaml frontmatter")
 )
 
 const delimiter = "---"
 
-// SplitFrontmatter splits a markdown document into its YAML frontmatter and its body.
+// Split splits a markdown document into its YAML frontmatter and its body.
 // Both are returned without the delimiter lines and without surrounding blank lines.
-func SplitFrontmatter(data []byte) (frontmatter, body []byte, err error) {
+func Split(data []byte) (frontmatter, body []byte, err error) {
 	trimmed := bytes.TrimLeft(data, " \t\r\n")
 	if !bytes.HasPrefix(trimmed, []byte(delimiter)) {
-		return nil, nil, ErrNoFrontmatter
+		return nil, nil, ErrNotFound
 	}
 
 	// Skip the opening delimiter line.
 	rest := trimmed[len(delimiter):]
 	nl := bytes.IndexByte(rest, '\n')
 	if nl < 0 {
-		return nil, nil, ErrUnterminatedFrontmatter
+		return nil, nil, ErrUnterminated
 	}
 	rest = rest[nl+1:]
 
 	// Find the closing delimiter at the start of a line.
 	closing := findDelimiterLine(rest)
 	if closing < 0 {
-		return nil, nil, ErrUnterminatedFrontmatter
+		return nil, nil, ErrUnterminated
 	}
 
 	frontmatter = bytes.TrimSpace(rest[:closing])
