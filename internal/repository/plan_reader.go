@@ -106,10 +106,10 @@ func (r *PlanReader) ListPlans() ([]string, error) {
 	return ids, nil
 }
 
-func toSessions(in []sessionFile) ([]domain.SessionTemplate, error) {
-	out := make([]domain.SessionTemplate, 0, len(in))
+func toSessions(in []sessionFile) ([]domain.Session, error) {
+	out := make([]domain.Session, 0, len(in))
 	for _, s := range in {
-		session, err := domain.NewSessionTemplate(
+		session, err := domain.NewSession(
 			strings.TrimSpace(s.Name),
 			domain.Kind(strings.ToLower(strings.TrimSpace(s.Kind))),
 			strings.TrimSpace(s.Modality),

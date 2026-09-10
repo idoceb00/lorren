@@ -7,7 +7,7 @@ type DailyInterviewer interface {
 }
 
 type TrainingInterviewer interface {
-	AskTrainingSession(plan Plan) (*TrainingSession, error)
+	AskTrainingLog(plan Plan) (*TrainingLog, error)
 }
 
 type Repository interface {

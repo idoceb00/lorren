@@ -18,7 +18,7 @@ type exerciseInput struct {
 	done     bool
 }
 
-func (h *HuhInterviewer) AskTrainingSession(plan domain.Plan) (*domain.TrainingSession, error) {
+func (h *HuhInterviewer) AskTrainingLog(plan domain.Plan) (*domain.TrainingLog, error) {
 	name, err := askSessionName(plan)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (h *HuhInterviewer) AskTrainingSession(plan domain.Plan) (*domain.TrainingS
 		return nil, err
 	}
 
-	return domain.NewTrainingSession(domain.NewTrainingSessionInput{
+	return domain.NewTrainingSession(domain.NewTrainingLogInput{
 		Date:        time.Now(),
 		SessionName: template.Name,
 		Modality:    template.Modality,
@@ -68,7 +68,7 @@ func askSessionName(plan domain.Plan) (string, error) {
 }
 
 // askDetail dispatches on kind: each kind collects its own detail.
-func askDetail(t domain.SessionTemplate) (domain.SessionDetail, error) {
+func askDetail(t domain.Session) (domain.TrainingDetail, error) {
 	switch t.Kind {
 	case domain.KindStrength:
 		return askStrengthDetail(t)
@@ -81,7 +81,7 @@ func askDetail(t domain.SessionTemplate) (domain.SessionDetail, error) {
 	}
 }
 
-func askStrengthDetail(t domain.SessionTemplate) (domain.SessionDetail, error) {
+func askStrengthDetail(t domain.Session) (domain.TrainingDetail, error) {
 	inputs := make([]*exerciseInput, 0, len(t.Exercises))
 	for _, e := range t.Exercises {
 		inputs = append(inputs, &exerciseInput{template: e, done: true})
@@ -234,7 +234,7 @@ func (in *exerciseInput) toPerformed() (domain.PerformedExercise, error) {
 	return e, nil
 }
 
-func askCardioDetail() (domain.SessionDetail, error) {
+func askCardioDetail() (domain.TrainingDetail, error) {
 	var activity string
 
 	form := huh.NewForm(
@@ -252,7 +252,7 @@ func askCardioDetail() (domain.SessionDetail, error) {
 	return domain.CardioDetail{Activity: strings.TrimSpace(activity)}, nil
 }
 
-func askCommon(t domain.SessionTemplate) (time.Duration, string, error) {
+func askCommon(t domain.Session) (time.Duration, string, error) {
 	var (
 		minutes string
 		notes   string

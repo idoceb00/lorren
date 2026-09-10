@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// SessionDetail is the kind-specific part of a training session. Each Kind has
+// TrainingDetail is the kind-specific part of a training session. Each Kind has
 // exactly one implementation.
-type SessionDetail interface {
+type TrainingDetail interface {
 	// Kind reports which session kind this detail belongs to, so callers can
 	// check it matches the session it is attached to.
 	Kind() Kind
@@ -100,26 +100,26 @@ func (SportDetail) Kind() Kind { return KindSport }
 
 func (SportDetail) validate() error { return nil }
 
-// TrainingSession is one logged training session.
-type TrainingSession struct {
+// TrainingLog is one logged training session.
+type TrainingLog struct {
 	Date        time.Time
 	SessionName string
 	Modality    string
 	Duration    time.Duration
 	Notes       string
-	Detail      SessionDetail
+	Detail      TrainingDetail
 }
 
-type NewTrainingSessionInput struct {
+type NewTrainingLogInput struct {
 	Date        time.Time
 	SessionName string
 	Modality    string
 	Duration    time.Duration
 	Notes       string
-	Detail      SessionDetail
+	Detail      TrainingDetail
 }
 
-func NewTrainingSession(in NewTrainingSessionInput) (*TrainingSession, error) {
+func NewTrainingSession(in NewTrainingLogInput) (*TrainingLog, error) {
 	if in.Date.IsZero() {
 		return nil, fmt.Errorf("date is required")
 	}
@@ -139,7 +139,7 @@ func NewTrainingSession(in NewTrainingSessionInput) (*TrainingSession, error) {
 		return nil, fmt.Errorf("session %q: %w", in.SessionName, err)
 	}
 
-	return &TrainingSession{
+	return &TrainingLog{
 		Date:        in.Date,
 		SessionName: strings.TrimSpace(in.SessionName),
 		Modality:    strings.TrimSpace(in.Modality),
@@ -151,4 +151,4 @@ func NewTrainingSession(in NewTrainingSessionInput) (*TrainingSession, error) {
 
 // Kind is the kind of the session, taken from its detail. There is no separate
 // field, so the two can never disagree.
-func (s *TrainingSession) Kind() Kind { return s.Detail.Kind() }
+func (s *TrainingLog) Kind() Kind { return s.Detail.Kind() }
