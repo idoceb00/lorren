@@ -17,7 +17,7 @@ var dayCmd = &cobra.Command{
 	Long:  `Day starts an interactive wizard that asks about your daily habits and writes the result as a markdown file with YAML frontmatter.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var interviewerPort domain.DailyInterviewer = interviewer.NewHuhInterviewer()
-		var repositoryPort domain.DailyRepository = repository.NewMarkdownRepository(appConfig.DailyNotesPath())
+		var repositoryPort domain.DailyRepository = repository.NewDailyRepository(appConfig.DailyNotesPath())
 
 		path, err := service.RecordDay(interviewerPort, repositoryPort, time.Now())
 		if err != nil {

@@ -14,7 +14,7 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-type MarkdownRepository struct {
+type DailyRepository struct {
 	dailyNotesDir string
 }
 
@@ -42,11 +42,11 @@ var fieldPatterns = map[string]*regexp.Regexp{
 	"quick_notes":      compileFieldPattern("quick_notes"),
 }
 
-func NewMarkdownRepository(dir string) *MarkdownRepository {
-	return &MarkdownRepository{dailyNotesDir: dir}
+func NewDailyRepository(dir string) *DailyRepository {
+	return &DailyRepository{dailyNotesDir: dir}
 }
 
-func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) (string, error) {
+func (w *DailyRepository) SaveDailyLog(log *domain.DailyLog) (string, error) {
 	if err := os.MkdirAll(w.dailyNotesDir, 0o755); err != nil {
 		return "", fmt.Errorf("creating daily notes dir: %w", err)
 	}
@@ -63,7 +63,7 @@ func (w *MarkdownRepository) SaveDailyLog(log *domain.DailyLog) (string, error) 
 	return path, nil
 }
 
-func (w *MarkdownRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {
+func (w *DailyRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {
 	filename := date.Format("2006-01-02") + ".md"
 	path := filepath.Join(w.dailyNotesDir, filename)
 
