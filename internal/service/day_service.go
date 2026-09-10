@@ -8,7 +8,7 @@ import (
 	"github.com/idoceb00/lorren/internal/domain"
 )
 
-func RecordDay(interviewer domain.Interviewer, repo domain.Repository, date time.Time) error {
+func RecordDay(interviewer domain.DailyInterviewer, repo domain.Repository, date time.Time) error {
 	existing, err := repo.FindByDate(date)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {

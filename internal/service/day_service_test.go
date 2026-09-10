@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -23,10 +22,6 @@ func (f *fakeInterviewer) AskDailyLog(existing *domain.DailyLog) (*domain.DailyL
 	f.called = true
 	f.receivedExisting = existing
 	return f.askFunc(existing)
-}
-
-func (f *fakeInterviewer) AskTrainingSession(plan domain.Plan) (*domain.TrainingSession, error) {
-	return nil, errors.New("AskTrainingSession not implemented in this fake")
 }
 
 // fakeRepository is a test double for domain.Repository.

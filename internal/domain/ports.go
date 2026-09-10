@@ -2,8 +2,11 @@ package domain
 
 import "time"
 
-type Interviewer interface {
+type DailyInterviewer interface {
 	AskDailyLog(existing *DailyLog) (*DailyLog, error)
+}
+
+type TrainingInterviewer interface {
 	AskTrainingSession(plan Plan) (*TrainingSession, error)
 }
 
