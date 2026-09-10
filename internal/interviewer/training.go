@@ -151,7 +151,9 @@ func (in *exerciseInput) fields() []huh.Field {
 			huh.NewInput().
 				Title("  reps").
 				Value(&in.reps).
-				Validate(validateOptionalInt),
+				Validate(func(s string) error {
+					return validateReps(s, in.done)
+				}),
 		}
 	}
 
@@ -164,8 +166,35 @@ func (in *exerciseInput) fields() []huh.Field {
 		huh.NewInput().
 			Title("  reps").
 			Value(&in.reps).
-			Validate(validateOptionalInt),
+			Validate(func(s string) error {
+				return validateReps(s, strings.TrimSpace(in.weight) != "")
+			}),
 	}
+}
+
+func validateReps(s string, performed bool) error {
+	s = strings.TrimSpace(s)
+
+	if !performed {
+		if s != "" {
+			return fmt.Errorf("you skipped this one, leave reps empty")
+		}
+		return nil
+	}
+
+	if s == "" {
+		return fmt.Errorf("how many reps?")
+	}
+
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("must be a whole number")
+	}
+	if n < 1 {
+		return fmt.Errorf("must be at least 1")
+	}
+
+	return nil
 }
 
 func (in *exerciseInput) toPerformed() (domain.PerformedExercise, error) {
