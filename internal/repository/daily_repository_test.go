@@ -151,7 +151,7 @@ func TestMarkdownRepository_SaveDailyLog(t *testing.T) {
 			if tt.subdir != "" {
 				dir = filepath.Join(dir, tt.subdir)
 			}
-			writer := repository.NewMarkdownRepository(dir)
+			writer := repository.NewDailyRepository(dir)
 
 			_, gotErr := writer.SaveDailyLog(tt.log)
 			if gotErr != nil {
