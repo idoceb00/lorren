@@ -9,7 +9,7 @@ import (
 	"github.com/idoceb00/lorren/internal/service"
 )
 
-// fakeInterviewer is a test double for domain.Interviewer. askFunc lets
+// fakeInterviewer is a test double for domain.DailyInterviewer. askFunc lets
 // each test case control what AskDailyLog returns. receivedExisting
 // records what RecordDay actually passed in, so tests can assert on it.
 type fakeInterviewer struct {
@@ -24,10 +24,10 @@ func (f *fakeInterviewer) AskDailyLog(existing *domain.DailyLog) (*domain.DailyL
 	return f.askFunc(existing)
 }
 
-// fakeRepository is a test double for domain.Repository.
+// fakeRepository is a test double for domain.DailyRepository.
 type fakeRepository struct {
 	findFunc   func(date time.Time) (*domain.DailyLog, error)
-	saveFunc   func(log *domain.DailyLog) error
+	saveFunc   func(log *domain.DailyLog) (string, error)
 	saveCalled bool
 }
 
@@ -35,7 +35,7 @@ func (f *fakeRepository) FindByDate(date time.Time) (*domain.DailyLog, error) {
 	return f.findFunc(date)
 }
 
-func (f *fakeRepository) SaveDailyLog(log *domain.DailyLog) error {
+func (f *fakeRepository) SaveDailyLog(log *domain.DailyLog) (string, error) {
 	f.saveCalled = true
 	return f.saveFunc(log)
 }
@@ -44,6 +44,8 @@ func TestRecordDay(t *testing.T) {
 	fixedDate := time.Date(2026, 9, 8, 0, 0, 0, 0, time.UTC)
 	existingLog := &domain.DailyLog{Date: fixedDate, Breakfast: "oats"}
 	newLog := &domain.DailyLog{Date: fixedDate, Breakfast: "eggs"}
+
+	const savedPath = "/vault/Diario/2026-09-08.md"
 
 	tests := []struct {
 		name string
@@ -70,7 +72,7 @@ func TestRecordDay(t *testing.T) {
 				findFunc: func(date time.Time) (*domain.DailyLog, error) {
 					return nil, domain.ErrNotFound
 				},
-				saveFunc: func(log *domain.DailyLog) error { return nil },
+				saveFunc: func(log *domain.DailyLog) (string, error) { return savedPath, nil },
 			},
 			date:         fixedDate,
 			wantErr:      false,
@@ -88,7 +90,7 @@ func TestRecordDay(t *testing.T) {
 				findFunc: func(date time.Time) (*domain.DailyLog, error) {
 					return existingLog, nil
 				},
-				saveFunc: func(log *domain.DailyLog) error { return nil },
+				saveFunc: func(log *domain.DailyLog) (string, error) { return savedPath, nil },
 			},
 			date:         fixedDate,
 			wantErr:      false,
@@ -107,9 +109,9 @@ func TestRecordDay(t *testing.T) {
 				findFunc: func(date time.Time) (*domain.DailyLog, error) {
 					return nil, fmt.Errorf("disk error")
 				},
-				saveFunc: func(log *domain.DailyLog) error {
+				saveFunc: func(log *domain.DailyLog) (string, error) {
 					t.Fatal("SaveDailyLog should not be called")
-					return nil
+					return "", nil
 				},
 			},
 			date:    fixedDate,
@@ -126,9 +128,9 @@ func TestRecordDay(t *testing.T) {
 				findFunc: func(date time.Time) (*domain.DailyLog, error) {
 					return nil, domain.ErrNotFound
 				},
-				saveFunc: func(log *domain.DailyLog) error {
+				saveFunc: func(log *domain.DailyLog) (string, error) {
 					t.Fatal("SaveDailyLog should not be called")
-					return nil
+					return "", nil
 				},
 			},
 			date:    fixedDate,
@@ -145,8 +147,8 @@ func TestRecordDay(t *testing.T) {
 				findFunc: func(date time.Time) (*domain.DailyLog, error) {
 					return nil, domain.ErrNotFound
 				},
-				saveFunc: func(log *domain.DailyLog) error {
-					return fmt.Errorf("permission denied")
+				saveFunc: func(log *domain.DailyLog) (string, error) {
+					return "", fmt.Errorf("permission denied")
 				},
 			},
 			date:    fixedDate,
@@ -156,7 +158,7 @@ func TestRecordDay(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotErr := service.RecordDay(tt.interviewer, tt.repo, tt.date)
+			gotPath, gotErr := service.RecordDay(tt.interviewer, tt.repo, tt.date)
 			if gotErr != nil {
 				if !tt.wantErr {
 					t.Errorf("RecordDay() failed: %v", gotErr)
@@ -172,6 +174,9 @@ func TestRecordDay(t *testing.T) {
 			}
 			if tt.wantSaved && !tt.repo.saveCalled {
 				t.Error("expected SaveDailyLog to be called, but it wasn't")
+			}
+			if tt.wantSaved && gotPath != savedPath {
+				t.Errorf("RecordDay() path = %q, want %q", gotPath, savedPath)
 			}
 		})
 	}

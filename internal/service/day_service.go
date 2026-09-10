@@ -8,23 +8,24 @@ import (
 	"github.com/idoceb00/lorren/internal/domain"
 )
 
-func RecordDay(interviewer domain.DailyInterviewer, repo domain.DailyRepository, date time.Time) error {
+func RecordDay(interviewer domain.DailyInterviewer, repo domain.DailyRepository, date time.Time) (string, error) {
 	existing, err := repo.FindByDate(date)
 	if err != nil {
 		if !errors.Is(err, domain.ErrNotFound) {
-			return fmt.Errorf("checking for existing daily log: %w", err)
+			return "", fmt.Errorf("checking for existing daily log: %w", err)
 		}
 		existing = nil
 	}
 
 	log, err := interviewer.AskDailyLog(existing)
 	if err != nil {
-		return fmt.Errorf("running daily log wizard: %w", err)
+		return "", fmt.Errorf("running daily log wizard: %w", err)
 	}
 
-	if err := repo.SaveDailyLog(log); err != nil {
-		return fmt.Errorf("saving daily log: %w", err)
+	path, err := repo.SaveDailyLog(log)
+	if err != nil {
+		return "", fmt.Errorf("saving daily log: %w", err)
 	}
 
-	return nil
+	return path, nil
 }
