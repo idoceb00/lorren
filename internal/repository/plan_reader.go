@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/idoceb00/lorren/internal/domain"
-	"github.com/idoceb00/lorren/internal/markdown"
+	"github.com/idoceb00/lorren/internal/frontmatter"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -57,7 +57,7 @@ func (r *PlanReader) LoadPlan(id string) (domain.Plan, error) {
 		return domain.Plan{}, fmt.Errorf("reading plan %q: %w", id, err)
 	}
 
-	fm, _, err := markdown.SplitFrontmatter(raw)
+	fm, _, err := frontmatter.Split(raw)
 	if err != nil {
 		return domain.Plan{}, fmt.Errorf("plan %q: %w", id, err)
 	}
