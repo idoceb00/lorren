@@ -4,6 +4,7 @@ import "time"
 
 type Interviewer interface {
 	AskDailyLog(existing *DailyLog) (*DailyLog, error)
+	AskTrainingSession(plan Plan) (*TrainingSession, error)
 }
 
 type Repository interface {
