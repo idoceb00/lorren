@@ -29,3 +29,12 @@ func RecordDay(interviewer domain.DailyInterviewer, repo domain.DailyRepository,
 
 	return path, nil
 }
+
+func ShowDay(repo domain.DailyRepository, date time.Time) (*domain.DailyLog, error) {
+	log, err := repo.FindByDate(date)
+	if err != nil {
+		return nil, fmt.Errorf("reading daily log: %w", err)
+	}
+
+	return log, nil
+}
