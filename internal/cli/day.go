@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -16,8 +17,30 @@ var dayCmd = &cobra.Command{
 	Short: "Log today's habits",
 	Long:  `Day starts an interactive wizard that asks about your daily habits and writes the result as a markdown file with YAML frontmatter.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var interviewerPort domain.DailyInterviewer = interviewer.NewHuhInterviewer()
 		var repositoryPort domain.DailyRepository = repository.NewDailyRepository(appConfig.DailyNotesPath())
+
+		show, err := cmd.Flags().GetBool("show")
+		if err != nil {
+			return err
+		}
+
+		if show {
+			log, err := service.ShowDay(repositoryPort, time.Now())
+			if err != nil {
+				if errors.Is(err, domain.ErrNotFound) {
+					fmt.Fprintln(cmd.OutOrStdout(), "No daily log for today yet.")
+					return nil
+				}
+
+				return err
+			}
+
+			renderDailyLog(cmd.OutOrStdout(), log)
+
+			return nil
+		}
+
+		var interviewerPort domain.DailyInterviewer = interviewer.NewHuhInterviewer()
 
 		path, err := service.RecordDay(interviewerPort, repositoryPort, time.Now())
 		if err != nil {
@@ -32,5 +55,6 @@ var dayCmd = &cobra.Command{
 
 // Special function executed automatically when the package is loaded
 func init() {
+	dayCmd.Flags().Bool("show", false, "print today's log instead of starting the wizard")
 	rootCmd.AddCommand(dayCmd)
 }
